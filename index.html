@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lucy 减脂小助手</title>
+  <title>Lucy’s Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
   <!-- Chart.js for progress chart -->
@@ -12,110 +12,105 @@
   <script src="app.js" defer></script>
 </head>
 <body>
-  <header>Lucy 减脂 · 菜单 / 训练 / 体重追踪</header>
+  <header>Stay on Track!</header>
 
   <div class="tabs">
-    <div class="tab active" data-tab="menu">菜单</div>
-    <div class="tab" data-tab="grocery">采购</div>
-    <div class="tab" data-tab="workout">训练</div>
-    <div class="tab" data-tab="progress">体重</div>
+    <div class="tab active" data-tab="menu">Menu</div>
+    <div class="tab" data-tab="grocery">Groceries</div>
+    <div class="tab" data-tab="workout">Workout</div>
+    <div class="tab" data-tab="progress">Weight</div>
   </div>
 
-  <!-- 菜单 TAB -->
+  <!-- MENU TAB -->
   <div class="container" id="menu" style="display:block;">
     <div class="section-title">
       <span id="weekTitle"></span>
     </div>
     <div class="week-row small">
-      <span>选择周：</span>
+      <span>Week:</span>
       <select id="weekSelect"></select>
     </div>
     <div id="menuContent"></div>
   </div>
 
-  <!-- 采购 TAB -->
+  <!-- GROCERIES TAB -->
   <div class="container" id="grocery" style="display:none;">
-    <div class="section-title">采购清单</div>
-    <div class="week-row small">
-      <span>对应周：</span>
-      <select id="weekSelect" disabled></select>
-      <span class="small">(与菜单同步)</span>
-    </div>
+    <div class="section-title">Grocery list (synced with selected week)</div>
     <div id="groceryContent"></div>
   </div>
 
-  <!-- 训练 TAB -->
+  <!-- WORKOUT TAB -->
   <div class="container" id="workout" style="display:none;">
-    <div class="section-title">一周 4 天训练计划（每次约 1 小时）</div>
-    <p class="small">结构：5 分钟热身 + 30–35 分钟力量训练 + 10–15 分钟坡度走 + 10–15 分钟拉伸。</p>
+    <div class="section-title">4-Day Weekly Workout (≈ 1 hour each)</div>
+    <p class="small">Structure: 5 min warm-up · 30–35 min strength · 10–15 min incline walking · 10–15 min stretching.</p>
 
     <div class="day-block">
-      <div class="day-name">Day 1 下肢为主</div>
+      <div class="day-name">Day 1 · Lower Body Focus</div>
       <ul>
-        <li>热身：快走、腿摆动（5 分钟）</li>
-        <li>腿举（Leg Press） 12 次 × 3 组</li>
-        <li>哑铃罗马尼亚硬拉 12 次 × 3 组</li>
-        <li>反向箭步蹲 12 步 × 2 组</li>
-        <li>坡度走：坡度 8–12%，10–15 分钟</li>
-        <li>拉伸：腿后侧、大腿前侧、小腿等 10–15 分钟</li>
+        <li>Warm-up: brisk walk, leg swings (5 min)</li>
+        <li>Leg Press · 12 reps × 3 sets</li>
+        <li>Dumbbell Romanian Deadlift · 12 reps × 3 sets</li>
+        <li>Reverse Lunges · 12 steps × 2 sets</li>
+        <li>Incline Walk: incline 8–12%, 10–15 min</li>
+        <li>Stretch: hamstrings, quads, calves, hips · 10–15 min</li>
       </ul>
     </div>
 
     <div class="day-block">
-      <div class="day-name">Day 2 上肢为主</div>
+      <div class="day-name">Day 2 · Upper Body Focus</div>
       <ul>
-        <li>下拉（Lat Pulldown）12 × 3</li>
-        <li>卧推或胸推（Chest Press）12 × 3</li>
-        <li>坐姿划船 12 × 3</li>
-        <li>平板支撑 30–45 秒 × 2</li>
-        <li>坡度走 10–15 分钟</li>
-        <li>全身拉伸 10–15 分钟</li>
+        <li>Lat Pulldown · 12 × 3</li>
+        <li>Chest Press (machine or dumbbells) · 12 × 3</li>
+        <li>Seated Row · 12 × 3</li>
+        <li>Plank · 30–45 sec × 2</li>
+        <li>Incline Walk · 10–15 min</li>
+        <li>Full-body stretch · 10–15 min</li>
       </ul>
     </div>
 
     <div class="day-block">
-      <div class="day-name">Day 3 全身混合</div>
+      <div class="day-name">Day 3 · Full Body Mix</div>
       <ul>
-        <li>高举深蹲（Goblet Squat）12 × 3</li>
-        <li>哑铃 RDL 12 × 3</li>
-        <li>哑铃肩上推举 10 × 3</li>
-        <li>Dead Bug 每边 10 次 × 2</li>
-        <li>坡度走 + 拉伸 同上</li>
+        <li>Goblet Squat · 12 × 3</li>
+        <li>Dumbbell RDL · 12 × 3</li>
+        <li>Dumbbell Shoulder Press · 10 × 3</li>
+        <li>Dead Bug · 10 each side × 2</li>
+        <li>Incline Walk + Stretch · same as above</li>
       </ul>
     </div>
 
     <div class="day-block">
-      <div class="day-name">Day 4 下肢 & 核心</div>
+      <div class="day-name">Day 4 · Lower Body & Core</div>
       <ul>
-        <li>腿举 12 × 3</li>
-        <li>臀桥 / Hip Thrust 12 × 3</li>
-        <li>背伸（Back Extension）12 × 2</li>
-        <li>俄罗斯转体 20 次 × 2</li>
-        <li>坡度走 + 拉伸同上</li>
+        <li>Leg Press · 12 × 3</li>
+        <li>Hip Thrust · 12 × 3</li>
+        <li>Back Extension · 12 × 2</li>
+        <li>Russian Twists · 20 reps × 2</li>
+        <li>Incline Walk + Stretch · same as above</li>
       </ul>
     </div>
 
     <p class="small">
-      拉伸参考：YouTube 搜索 “10 min full body stretch MadFit” 或 “10 minute post workout stretch”。
+      Stretching ideas: YouTube “10 min full body stretch MadFit” or “10 minute post workout stretch”.
     </p>
   </div>
 
-  <!-- 体重 TAB -->
+  <!-- WEIGHT TAB -->
   <div class="container" id="progress" style="display:none;">
-    <div class="section-title">体重记录 & 趋势</div>
-    <p class="small">每天早上起床后、上厕所后、空腹称重，在这里记录。</p>
+    <div class="section-title">Weight Log & Trend</div>
+    <p class="small">Weigh yourself in the morning, after bathroom, before breakfast. Log it here.</p>
 
     <div class="input-row">
       <input type="date" id="dateInput" />
-      <input type="number" step="0.1" id="weightInput" placeholder="体重 kg" />
-      <button class="btn" id="addBtn">保存</button>
+      <input type="number" step="0.1" id="weightInput" placeholder="Weight (kg)" />
+      <button class="btn" id="addBtn">Save</button>
     </div>
 
     <canvas id="weightChart" height="200"></canvas>
 
     <table id="weightTable">
       <thead>
-        <tr><th>日期</th><th>体重 (kg)</th></tr>
+        <tr><th>Date</th><th>Weight (kg)</th></tr>
       </thead>
       <tbody></tbody>
     </table>
