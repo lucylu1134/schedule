@@ -3,8 +3,8 @@
 const WEEKS = [
   {
     id: "week1",
-    label: "Week 1（1.13–1.19）",
-    title: "1.13–1.19 一周菜单（四蔬菜固定版）",
+    label: "Week 1 (Jan 13–19)",
+    title: "Week 1 Menu (four fixed veggies)",
     menu: [
       {
         name: "周一",
