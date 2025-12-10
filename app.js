@@ -126,7 +126,7 @@ function renderWeek(weekId) {
 
   const note = document.createElement('p');
   note.className = 'small';
-  note.textContent = "提示：如果某周不需要全部食材，可以在 GitHub 里编辑 data.js 中对应周的 grocery 列表。";
+  note.textContent = "Tip: if a week doesn’t need all items, you can edit that week’s grocery list in data.js.";
   groceryContentEl.appendChild(note);
 }
 
