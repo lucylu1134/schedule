@@ -1,0 +1,395 @@
+</html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lucy 减脂小助手</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Chart.js for progress chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      background: #fafafa;
+      color: #222;
+    }
+    header {
+      padding: 12px 16px;
+      background: #1f3b5f;
+      color: #fff;
+      text-align: center;
+      font-weight: 600;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .tab.active {
+      color: #1f3b5f;
+      border-bottom: 2px solid #1f3b5f;
+      font-weight: 600;
+    }
+    .container {
+      padding: 12px 14px 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .section-title {
+      margin: 12px 0 4px;
+      font-weight: 600;
+      color: #1f3b5f;
+      font-size: 15px;
+    }
+    .day-block {
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .day-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #333;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      margin-left: 6px;
+      background: #e5f0ff;
+      color: #1f3b5f;
+    }
+    .meal-title {
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .small {
+      font-size: 12px;
+      color: #666;
+    }
+    /* Progress styles */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      background: #1f3b5f;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:active {
+      opacity: 0.8;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    th, td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    th {
+      background: #f5f7fb;
+    }
+  </style>
+</head>
+<body>
+<header>Lucy 减脂 · 菜单 / 训练 / 体重追踪</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="menu">菜单</div>
+  <div class="tab" data-tab="workout">训练</div>
+  <div class="tab" data-tab="progress">体重</div>
+</div>
+
+<div class="container" id="menu" style="display:block;">
+  <div class="section-title">1.13–1.19 一周菜单（四蔬菜固定版）</div>
+
+  <!-- 周一 -->
+  <div class="day-block">
+    <div class="day-name">周一 <span class="badge">训练日</span></div>
+    <div class="meal-title">早餐（外带）</div>
+    <div class="small">无糖希腊酸奶 120g + 水煮蛋 1 个（约 250 kcal）</div>
+
+    <div class="meal-title">午餐：黑椒牛排粒炒平菇</div>
+    <div>牛排粒 140g + 平菇 170g，少油，黑胡椒调味。</div>
+
+    <div class="meal-title">晚餐：煎三文鱼排 + 清炒娃娃菜</div>
+    <div>三文鱼排 150g；娃娃菜 120g 蒜末快炒。</div>
+  </div>
+
+  <!-- 周二 -->
+  <div class="day-block">
+    <div class="day-name">周二 <span class="badge">训练日</span></div>
+    <div class="meal-title">早餐（外带）</div>
+    <div class="small">Starbucks Protein Box（约 300 kcal）。</div>
+
+    <div class="meal-title">午餐：鸡腿肉炒茄子（低油版）</div>
+    <div>鸡腿肉 150g + 茄子 200g，茄子先微波再快炒。</div>
+
+    <div class="meal-title">晚餐：虾仁炒金针菇</div>
+    <div>虾仁 200g + 金针菇 150g，大火快炒，黑胡椒调味。</div>
+  </div>
+
+  <!-- 周三 -->
+  <div class="day-block">
+    <div class="day-name">周三 <span class="badge">训练日</span></div>
+    <div class="meal-title">早餐（外带）</div>
+    <div class="small">无糖酸奶 + 香蕉 1 根（约 260 kcal）。</div>
+
+    <div class="meal-title">午餐：牛肉片烧茄子</div>
+    <div>牛肉片 150g + 茄子 200g，少油焖烧入味。</div>
+
+    <div class="meal-title">晚餐：煎比目鱼排 + 蒜蓉娃娃菜</div>
+    <div>比目鱼排 150g；娃娃菜 150g 蒜蓉炒软。</div>
+  </div>
+
+  <!-- 周四 -->
+  <div class="day-block">
+    <div class="day-name">周四 <span class="badge">训练日</span></div>
+    <div class="meal-title">早餐（外带）</div>
+    <div class="small">无糖燕麦拿铁 + 蛋白棒（约 300 kcal）。</div>
+
+    <div class="meal-title">午餐：鸡胸肉炒平菇</div>
+    <div>鸡胸肉 150g + 平菇 150g，少油、生抽、黑胡椒。</div>
+
+    <div class="meal-title">晚餐：煎牛排 + 清炒金针菇</div>
+    <div>牛排 150g；金针菇 150g 蒜末快炒。</div>
+  </div>
+
+  <!-- 周五 -->
+  <div class="day-block">
+    <div class="day-name">周五 <span class="badge">休息日 · 两餐</span></div>
+    <div class="meal-title">餐一：牛排沙拉（无主食）</div>
+    <div>牛排 150g + 生菜/番茄，柠檬汁 / 黑胡椒 / 少量生抽。</div>
+
+    <div class="meal-title">餐二：鸡胸肉炒娃娃菜</div>
+    <div>鸡胸肉 120g + 娃娃菜 150g，蒜末快炒。</div>
+  </div>
+
+  <!-- 周六 -->
+  <div class="day-block">
+    <div class="day-name">周六 <span class="badge">休息日 · 两餐</span></div>
+    <div class="meal-title">餐一：煎三文鱼 + 清炒娃娃菜</div>
+    <div>三文鱼 130–150g；娃娃菜 150g 蒜香快炒。</div>
+
+    <div class="meal-title">餐二：鸡腿肉炒平菇</div>
+    <div>鸡腿肉 150g + 平菇 150g。</div>
+  </div>
+
+  <!-- 周日 -->
+  <div class="day-block">
+    <div class="day-name">周日 <span class="badge">社交日 · 一餐制</span></div>
+    <div class="meal-title">与朋友共享一餐</div>
+    <div>优先选择牛排 / 烤肉 / 铁板 / 寿司等高蛋白餐，其余时间只喝水或无糖茶。</div>
+  </div>
+</div>
+
+<div class="container" id="workout" style="display:none;">
+  <div class="section-title">一周 4 天训练计划（每次约 1 小时）</div>
+  <p class="small">结构：5 分钟热身 + 30–35 分钟力量训练 + 10–15 分钟坡度走 + 10–15 分钟拉伸。</p>
+
+  <div class="day-block">
+    <div class="day-name">Day 1 下肢为主</div>
+    <ul>
+      <li>热身：快走、腿摆动（5 分钟）</li>
+      <li>腿举（Leg Press） 12 次 × 3 组</li>
+      <li>哑铃罗马尼亚硬拉 12 次 × 3 组</li>
+      <li>反向箭步蹲 12 步 × 2 组</li>
+      <li>坡度走：坡度 8–12%，10–15 分钟</li>
+      <li>拉伸：腿后侧、大腿前侧、小腿等 10–15 分钟</li>
+    </ul>
+  </div>
+
+  <div class="day-block">
+    <div class="day-name">Day 2 上肢为主</div>
+    <ul>
+      <li>下拉（Lat Pulldown）12 × 3</li>
+      <li>卧推或胸推（Chest Press）12 × 3</li>
+      <li>坐姿划船 12 × 3</li>
+      <li>平板支撑 30–45 秒 × 2</li>
+      <li>坡度走 10–15 分钟</li>
+      <li>全身拉伸 10–15 分钟</li>
+    </ul>
+  </div>
+
+  <div class="day-block">
+    <div class="day-name">Day 3 全身混合</div>
+    <ul>
+      <li>高举深蹲（Goblet Squat）12 × 3</li>
+      <li>哑铃 RDL 12 × 3</li>
+      <li>哑铃肩上推举 10 × 3</li>
+      <li>Dead Bug 每边 10 次 × 2</li>
+      <li>坡度走 + 拉伸 同上</li>
+    </ul>
+  </div>
+
+  <div class="day-block">
+    <div class="day-name">Day 4 下肢 & 核心</div>
+    <ul>
+      <li>腿举 12 × 3</li>
+      <li>臀桥 / Hip Thrust 12 × 3</li>
+      <li>背伸（Back Extension）12 × 2</li>
+      <li>俄罗斯转体 20 次 × 2</li>
+      <li>坡度走 + 拉伸同上</li>
+    </ul>
+  </div>
+
+  <p class="small">
+    拉伸参考：YouTube 搜索 “10 min full body stretch MadFit” 或 “10 minute post workout stretch”。
+  </p>
+</div>
+
+<div class="container" id="progress" style="display:none;">
+  <div class="section-title">体重记录 & 趋势</div>
+  <p class="small">每天早上起床后、上厕所后、空腹称重，在这里记录。</p>
+
+  <div class="input-row">
+    <input type="date" id="dateInput" />
+    <input type="number" step="0.1" id="weightInput" placeholder="体重 kg" />
+    <button class="btn" id="addBtn">保存</button>
+  </div>
+
+  <canvas id="weightChart" height="200"></canvas>
+
+  <table id="weightTable">
+    <thead>
+      <tr><th>日期</th><th>体重 (kg)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const sections = {
+    menu: document.getElementById('menu'),
+    workout: document.getElementById('workout'),
+    progress: document.getElementById('progress'),
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      Object.keys(sections).forEach(key => {
+        sections[key].style.display = key === target ? 'block' : 'none';
+      });
+    });
+  });
+
+  // Weight tracking with localStorage + chart
+  let weightData = JSON.parse(localStorage.getItem('lucy_weight_data') || '[]');
+
+  const dateInput = document.getElementById('dateInput');
+  const weightInput = document.getElementById('weightInput');
+  const addBtn = document.getElementById('addBtn');
+  const tableBody = document.querySelector('#weightTable tbody');
+  const ctx = document.getElementById('weightChart').getContext('2d');
+
+  function renderTable() {
+    tableBody.innerHTML = '';
+    // sort by date ascending
+    const sorted = [...weightData].sort((a, b) => new Date(a.date) - new Date(b.date));
+    sorted.forEach(entry => {
+      const tr = document.createElement('tr');
+      const d = document.createElement('td');
+      const w = document.createElement('td');
+      d.textContent = entry.date;
+      w.textContent = entry.weight.toFixed(1);
+      tr.appendChild(d);
+      tr.appendChild(w);
+      tableBody.appendChild(tr);
+    });
+  }
+
+  let chart;
+  function renderChart() {
+    const sorted = [...weightData].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const labels = sorted.map(e => e.date);
+    const values = sorted.map(e => e.weight);
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: '体重 (kg)',
+          data: values,
+          tension: 0.2,
+          pointRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+
+  function saveData() {
+    localStorage.setItem('lucy_weight_data', JSON.stringify(weightData));
+  }
+
+  addBtn.addEventListener('click', () => {
+    const date = dateInput.value;
+    const weight = parseFloat(weightInput.value);
+    if (!date || isNaN(weight)) return;
+    // if same date exists, overwrite
+    const existingIndex = weightData.findIndex(e => e.date === date);
+    if (existingIndex >= 0) {
+      weightData[existingIndex].weight = weight;
+    } else {
+      weightData.push({ date, weight });
+    }
+    saveData();
+    renderTable();
+    renderChart();
+    weightInput.value = '';
+  });
+
+  // initial render
+  if (weightData.length) {
+    renderTable();
+    renderChart();
+  }
+</script>
+</body>
+</html>
