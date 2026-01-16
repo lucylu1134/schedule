@@ -1,4 +1,157 @@
 /* =========================================================
+   TRACKER (Menu/Groceries/Workout/Weight) INIT
+   Expects a global WEEKS object from ./weeks/weeks.js
+========================================================= */
+
+function initTabs() {
+  const tabs = document.querySelectorAll(".tab");
+  const sections = {
+    menu: $("menu"),
+    grocery: $("grocery"),
+    workout: $("workout"),
+    progress: $("progress"),
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const target = tab.dataset.tab;
+      Object.keys(sections).forEach(key => {
+        if (sections[key]) sections[key].style.display = (key === target ? "block" : "none");
+      });
+    });
+  });
+}
+
+function initWeekSelect() {
+  const select = $("weekSelect");
+  if (!select) return;
+
+  // WEEKS should be defined in weeks/weeks.js
+  if (typeof WEEKS === "undefined") {
+    console.error("WEEKS is not defined. Check that ./weeks/weeks.js loads and defines WEEKS.");
+    return;
+  }
+
+  select.innerHTML = "";
+
+  Object.keys(WEEKS).forEach(weekKey => {
+    const opt = document.createElement("option");
+    opt.value = weekKey;
+    opt.textContent = WEEKS[weekKey].title || weekKey;
+    select.appendChild(opt);
+  });
+
+  // default to first week
+  const firstKey = Object.keys(WEEKS)[0];
+  if (firstKey) {
+    select.value = firstKey;
+    renderWeek(firstKey);
+  }
+
+  select.addEventListener("change", () => renderWeek(select.value));
+}
+
+function renderWeek(weekKey) {
+  const week = WEEKS[weekKey];
+  if (!week) return;
+
+  if ($("weekTitle")) $("weekTitle").textContent = week.title || weekKey;
+
+  // Menu
+  const menuEl = $("menuContent");
+  if (menuEl) {
+    menuEl.innerHTML = week.menuHTML || "<div class='small'>No menu data found for this week.</div>";
+  }
+
+  // Groceries
+  const gEl = $("groceryContent");
+  if (gEl) {
+    gEl.innerHTML = week.groceryHTML || "<div class='small'>No grocery data found for this week.</div>";
+  }
+
+  // Workout (optional)
+  const wEl = $("workoutContent");
+  if (wEl && week.workoutHTML) {
+    wEl.innerHTML = week.workoutHTML;
+  }
+}
+
+/* ---- Weight tracker (basic localStorage) ---- */
+function initWeightTracker() {
+  const dateInput = $("dateInput");
+  const weightInput = $("weightInput");
+  const addBtn = $("addBtn");
+  const tableBody = document.querySelector("#weightTable tbody");
+  const canvas = $("weightChart");
+
+  if (!dateInput || !weightInput || !addBtn || !tableBody || !canvas) return;
+
+  let data = JSON.parse(localStorage.getItem("lucy_weight_data") || "[]");
+
+  function save() {
+    localStorage.setItem("lucy_weight_data", JSON.stringify(data));
+  }
+
+  function renderTable() {
+    tableBody.innerHTML = "";
+    const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+    sorted.forEach(e => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${e.date}</td><td>${Number(e.weight).toFixed(1)}</td>`;
+      tableBody.appendChild(tr);
+    });
+  }
+
+  let chart = null;
+  function renderChart() {
+    const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+    const labels = sorted.map(e => e.date);
+    const values = sorted.map(e => e.weight);
+
+    if (chart) chart.destroy();
+    chart = new Chart(canvas.getContext("2d"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{ label: "Weight (kg)", data: values, tension: 0.2, pointRadius: 3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
+
+  addBtn.addEventListener("click", () => {
+    const d = dateInput.value;
+    const w = parseFloat(weightInput.value);
+    if (!d || isNaN(w)) return;
+
+    const idx = data.findIndex(x => x.date === d);
+    if (idx >= 0) data[idx].weight = w;
+    else data.push({ date: d, weight: w });
+
+    save();
+    renderTable();
+    renderChart();
+    weightInput.value = "";
+  });
+
+  // default date = today
+  dateInput.value = todayISO();
+
+  if (data.length) {
+    renderTable();
+    renderChart();
+  }
+}
+
+function initTracker() {
+  initTabs();
+  initWeekSelect();
+  initWeightTracker();
+}
+
+/* =========================================================
    Utilities
 ========================================================= */
 function $(id) { return document.getElementById(id); }
@@ -307,4 +460,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderChecklist();
+   initTracker();
 });
