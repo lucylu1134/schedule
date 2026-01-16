@@ -20,6 +20,20 @@ function weekNumberISO(iso) {
   const week1 = new Date(d.getFullYear(), 0, 4);
   return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
+function daysUntil(dueISO, fromISO = todayISO()) {
+  const a = new Date(fromISO + "T00:00:00");
+  const b = new Date(dueISO + "T00:00:00");
+  return Math.round((b - a) / 86400000); // positive = days left
+}
+
+function dueLabel(dueISO) {
+  const d = daysUntil(dueISO);
+  if (d > 1) return { text: `Due in ${d} days`, overdue: false };
+  if (d === 1) return { text: "Due tomorrow", overdue: false };
+  if (d === 0) return { text: "Due today", overdue: false };
+  return { text: `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`, overdue: true };
+}
+
 
 /* =========================================================
    STORAGE
@@ -43,6 +57,13 @@ function loadDailyCompleteDays() {
 }
 function saveDailyCompleteDays(days) {
   localStorage.setItem("lucy_daily_complete_days", JSON.stringify(days));
+}
+function loadDueTasks() {
+  return JSON.parse(localStorage.getItem("lucy_due_tasks") || "[]");
+}
+
+function saveDueTasks(tasks) {
+  localStorage.setItem("lucy_due_tasks", JSON.stringify(tasks));
 }
 
 /* =========================================================
@@ -134,9 +155,18 @@ function renderChecklist() {
 
   listEl.innerHTML = "";
 
-  const defaults = getDefaultTasksForDate(iso);
-  const userTasks = loadUserTasks();
-  const allTasks = [...defaults, ...userTasks];
+   const defaults = getDefaultTasksForDate(iso);
+   const userTasks = loadUserTasks();
+   
+   // homework/projects with due dates (show daily until checked)
+   const dueTasks = loadDueTasks().map(t => ({
+     id: t.id,
+     text: t.text,
+     source: "due",
+     dueDate: t.dueDate
+   }));
+   
+   const allTasks = [...defaults, ...dueTasks, ...userTasks];
 
   const state = loadTaskState(iso);
 
@@ -153,6 +183,13 @@ function renderChecklist() {
     const text = document.createElement("span");
     text.textContent = task.text;
     text.className = "task-text";
+   let meta = null;
+   if (task.source === "due" && task.dueDate) {
+     const info = dueLabel(task.dueDate);
+     meta = document.createElement("span");
+     meta.className = "task-meta" + (info.overdue ? " overdue" : "");
+     meta.textContent = `(${info.text})`;
+   }
     if (cb.checked) text.classList.add("checked");
 
     cb.addEventListener("change", () => {
@@ -166,6 +203,11 @@ function renderChecklist() {
         if (task.source === "user") {
           saveUserTasks(loadUserTasks().filter(t => t.id !== task.id));
         }
+      // Remove due tasks permanently
+      if (task.source === "due") {
+        saveDueTasks(loadDueTasks().filter(t => t.id !== task.id));
+      }
+
       } else {
         delete st[task.id];
         text.classList.remove("checked");
@@ -177,6 +219,7 @@ function renderChecklist() {
 
     row.appendChild(cb);
     row.appendChild(text);
+     if (meta) row.appendChild(meta);
     listEl.appendChild(row);
 
     if (task.source === "default" && !cb.checked) {
@@ -195,6 +238,7 @@ function renderChecklist() {
   if ($("streakText")) $("streakText").textContent = `${streak} day streak`;
 }
 
+
 /* =========================================================
    ADD USER TASK
 ========================================================= */
@@ -212,6 +256,16 @@ function addUserTask(text) {
 /* =========================================================
    INIT
 ========================================================= */
+function addDueTask(text, dueDateISO) {
+  const tasks = loadDueTasks();
+  tasks.push({
+    id: "due_" + Date.now(),
+    text,
+    dueDate: dueDateISO
+  });
+  saveDueTasks(tasks);
+  renderChecklist();
+}
 document.addEventListener("DOMContentLoaded", () => {
   if ($("checklistDateLabel")) {
     $("checklistDateLabel").textContent = "Today: " + todayISO();
@@ -224,6 +278,17 @@ document.addEventListener("DOMContentLoaded", () => {
       addUserTask(val);
       $("newTaskInput").value = "";
     });
+   if ($("hwDueInput")) $("hwDueInput").value = todayISO();
+   
+   if ($("addHwBtn") && $("hwInput") && $("hwDueInput")) {
+     $("addHwBtn").addEventListener("click", () => {
+       const text = $("hwInput").value.trim();
+       const due = $("hwDueInput").value; // YYYY-MM-DD
+       if (!text || !due) return;
+       addDueTask(text, due);
+       $("hwInput").value = "";
+     });
+   }
   }
 
   renderChecklist();
