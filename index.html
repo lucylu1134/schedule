@@ -4,48 +4,51 @@
   <meta charset="UTF-8" />
   <title>Lucy’s Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="./style.css?v=2" />
+
+  <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Week data (add week2/week3 scripts here as you create them) -->
   <script src="./weeks/week1.js"></script>
+  <script src="./weeks/week2.js"></script>
   <script src="./weeks/weeks.js"></script>
+
+  <!-- App logic -->
   <script src="./app.js" defer></script>
 </head>
+
 <body>
   <header>Stay on Track!</header>
 
-  <!-- HOME -->
+  <!-- =========================
+       HOME VIEW
+  ========================== -->
   <div class="container" id="homeView" style="display:block;">
     <div class="section-title">Choose a section</div>
 
     <div class="card-grid">
-      <button class="card-btn" id="goTracker">
+      <button class="card-btn" id="goTracker" type="button">
         <div class="card-title">Stay on Track</div>
         <div class="small">Menu · Groceries · Workout · Weight</div>
       </button>
 
-      <div class="day-block">
-        <div class="day-name">Homework / Projects</div>
-      
-        <div class="input-row">
-          <input id="hwInput" type="text" placeholder="e.g., MEAM homework / project milestone" />
-          <input id="hwDueInput" type="date" />
-          <button class="btn" id="addHwBtn">Add</button>
-        </div>
-      
-        <div class="small">These show up daily until checked, with a countdown to the due date.</div>
-      </div>
-
-      <button class="card-btn" id="goChecklist">
+      <button class="card-btn" id="goChecklist" type="button">
         <div class="card-title">Daily Checklist</div>
-        <div class="small">Day + Week + Biweekly reset</div>
+        <div class="small">Defaults + homework/projects + your tasks</div>
       </button>
     </div>
   </div>
 
-  <!-- TRACKER (your existing 4 tabs) -->
+  <!-- =========================
+       TRACKER VIEW
+       (Menu / Groceries / Workout / Weight)
+  ========================== -->
   <div id="trackerView" style="display:none;">
     <div class="topbar">
-      <button class="btn ghost" id="backFromTracker">← Back</button>
+      <button class="btn ghost" id="backFromTracker" type="button">← Back</button>
       <div class="small" id="todayLabel"></div>
     </div>
 
@@ -59,10 +62,12 @@
     <!-- MENU TAB -->
     <div class="container" id="menu" style="display:block;">
       <div class="section-title"><span id="weekTitle"></span></div>
+
       <div class="week-row small">
         <span>Week:</span>
         <select id="weekSelect"></select>
       </div>
+
       <div id="menuContent"></div>
     </div>
 
@@ -74,56 +79,11 @@
 
     <!-- WORKOUT TAB -->
     <div class="container" id="workout" style="display:none;">
-      <div class="section-title">4-Day Weekly Workout (≈ 1 hour each)</div>
-      <p class="small">Structure: 5 min warm-up · 30–35 min strength · 10–15 min incline walking · 10–15 min stretching.</p>
-
-      <div class="day-block">
-        <div class="day-name">Day 1 · Lower Body Focus</div>
-        <ul>
-          <li>Warm-up: brisk walk, leg swings (5 min)</li>
-          <li>Leg Press · 12 reps × 3 sets</li>
-          <li>Dumbbell Romanian Deadlift · 12 reps × 3 sets</li>
-          <li>Reverse Lunges · 12 steps × 2 sets</li>
-          <li>Incline Walk: incline 8–12%, 10–15 min</li>
-          <li>Stretch: hamstrings, quads, calves, hips · 10–15 min</li>
-        </ul>
+      <div class="section-title">Workout Plan</div>
+      <div id="workoutContent">
+        <!-- If you already render workout from weeks.js, leave this empty -->
+        <!-- Otherwise you can paste your workout blocks here or in weeks/weekX.js -->
       </div>
-
-      <div class="day-block">
-        <div class="day-name">Day 2 · Upper Body Focus</div>
-        <ul>
-          <li>Lat Pulldown · 12 × 3</li>
-          <li>Chest Press · 12 × 3</li>
-          <li>Seated Row · 12 × 3</li>
-          <li>Plank · 30–45 sec × 2</li>
-          <li>Incline Walk · 10–15 min</li>
-          <li>Full-body stretch · 10–15 min</li>
-        </ul>
-      </div>
-
-      <div class="day-block">
-        <div class="day-name">Day 3 · Full Body Mix</div>
-        <ul>
-          <li>Goblet Squat · 12 × 3</li>
-          <li>Dumbbell RDL · 12 × 3</li>
-          <li>Dumbbell Shoulder Press · 10 × 3</li>
-          <li>Dead Bug · 10 each side × 2</li>
-          <li>Incline Walk + Stretch · same as above</li>
-        </ul>
-      </div>
-
-      <div class="day-block">
-        <div class="day-name">Day 4 · Lower Body & Core</div>
-        <ul>
-          <li>Leg Press · 12 × 3</li>
-          <li>Hip Thrust · 12 × 3</li>
-          <li>Back Extension · 12 × 2</li>
-          <li>Russian Twists · 20 × 2</li>
-          <li>Incline Walk + Stretch · same as above</li>
-        </ul>
-      </div>
-
-      <p class="small">Stretching ideas: YouTube “10 min full body stretch MadFit”.</p>
     </div>
 
     <!-- WEIGHT TAB -->
@@ -134,7 +94,7 @@
       <div class="input-row">
         <input type="date" id="dateInput" />
         <input type="number" step="0.1" id="weightInput" placeholder="Weight (kg)" />
-        <button class="btn" id="addBtn">Save</button>
+        <button class="btn" id="addBtn" type="button">Save</button>
       </div>
 
       <canvas id="weightChart" height="200"></canvas>
@@ -148,46 +108,50 @@
     </div>
   </div>
 
-  <!-- CHECKLIST -->
+  <!-- =========================
+       CHECKLIST VIEW
+       (Defaults + Homework/Projects + User tasks)
+  ========================== -->
   <div class="container" id="checklistView" style="display:none;">
     <div class="topbar">
-      <button class="btn ghost" id="backFromChecklist">← Back</button>
+      <button class="btn ghost" id="backFromChecklist" type="button">← Back</button>
       <div class="small" id="checklistDateLabel"></div>
     </div>
 
     <div class="section-title">Daily Checklist</div>
-    <p class="small">Defaults reset automatically. Custom tasks disappear after completion.</p>
+    <div class="small" id="streakText"></div>
 
+    <!-- Homework / Projects -->
     <div class="day-block">
-      <div class="day-name">Today</div>
-      <div id="dailyList"></div>
+      <div class="day-name">Homework / Projects</div>
 
-      <div class="input-row" style="margin-top:10px;">
-        <input id="dailyNewTask" placeholder="Add a task for today…" />
-        <button class="btn" id="addDailyTask">Add</button>
+      <div class="input-row">
+        <input id="hwInput" type="text" placeholder="e.g., MEAM homework / project milestone" />
+        <input id="hwDueInput" type="date" />
+        <button class="btn" id="addHwBtn" type="button">Add</button>
       </div>
 
-      <div class="celebrate" id="dailyCelebrate" style="display:none;">🎉 Daily tasks complete — LET’S GO!</div>
+      <div class="small">These show up daily until checked, with a countdown to the due date.</div>
     </div>
 
+    <!-- Checklist items -->
     <div class="day-block">
-      <div class="day-name">This Week</div>
-      <div id="weeklyList"></div>
+      <div class="day-name">Tasks</div>
+
+      <div id="checklistList"></div>
 
       <div class="input-row" style="margin-top:10px;">
-        <input id="weeklyNewTask" placeholder="Add a task for this week…" />
-        <button class="btn" id="addWeeklyTask">Add</button>
+        <input id="newTaskInput" placeholder="Add a task (stays until checked)..." />
+        <button class="btn" id="addTaskBtn" type="button">Add</button>
       </div>
 
-      <div class="celebrate" id="weeklyCelebrate" style="display:none;">🎉 Weekly tasks complete — you’re on track!</div>
+      <div class="celebrate" id="dailyCelebrate" style="display:none;">
+        🎉 Daily defaults complete — LET’S GO!
+      </div>
     </div>
 
-    <div class="day-block">
-      <div class="day-name">Biweekly</div>
-      <div id="biweeklyList"></div>
-
-      <div class="celebrate" id="biweeklyCelebrate" style="display:none;">🎉 Biweekly tasks complete — elite discipline!</div>
-    </div>
+    <!-- Confetti overlay -->
+    <div id="confettiLayer"></div>
   </div>
 </body>
 </html>
