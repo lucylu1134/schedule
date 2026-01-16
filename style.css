@@ -165,6 +165,17 @@ header {
   font-weight: 600;
 }
 
+.task-meta {
+  font-size: 12px;
+  color: #666;
+  margin-left: 8px;
+}
+
+.task-meta.overdue {
+  color: #b42318;
+  font-weight: 600;
+}
+
 /* ===== Tables ===== */
 table {
   width: 100%;
