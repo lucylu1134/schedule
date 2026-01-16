@@ -5,50 +5,54 @@
   <title>Lucy’s Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="./style.css?v=2" />
-
-  <!-- Libraries -->
+  <link rel="stylesheet" href="./style.css?v=3" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Week data (add week2/week3 scripts here as you create them) -->
+  <!-- Week data files -->
   <script src="./weeks/week1.js"></script>
   <script src="./weeks/week2.js"></script>
   <script src="./weeks/weeks.js"></script>
 
-  <!-- App logic -->
-  <script src="./app.js" defer></script>
+  <!-- App -->
+  <script src="./app.js?v=3" defer></script>
 </head>
 
 <body>
   <header>Stay on Track!</header>
 
-  <!-- =========================
-       HOME VIEW
-  ========================== -->
+  <!-- HOME -->
   <div class="container" id="homeView" style="display:block;">
     <div class="section-title">Choose a section</div>
 
     <div class="card-grid">
-      <button class="card-btn" id="goTracker" type="button">
+      <button class="card-btn" id="goTracker">
         <div class="card-title">Stay on Track</div>
         <div class="small">Menu · Groceries · Workout · Weight</div>
       </button>
 
-      <button class="card-btn" id="goChecklist" type="button">
+      <div class="day-block">
+        <div class="day-name">Homework / Projects</div>
+
+        <div class="input-row">
+          <input id="hwInput" type="text" placeholder="e.g., MEAM homework / project milestone" />
+          <input id="hwDueInput" type="date" />
+          <button class="btn" id="addHwBtn">Add</button>
+        </div>
+
+        <div class="small">These show up daily until checked, with a countdown to the due date.</div>
+      </div>
+
+      <button class="card-btn" id="goChecklist">
         <div class="card-title">Daily Checklist</div>
-        <div class="small">Defaults + homework/projects + your tasks</div>
+        <div class="small">One list · Daily + Weekly + Biweekly</div>
       </button>
     </div>
   </div>
 
-  <!-- =========================
-       TRACKER VIEW
-       (Menu / Groceries / Workout / Weight)
-  ========================== -->
+  <!-- TRACKER VIEW -->
   <div id="trackerView" style="display:none;">
     <div class="topbar">
-      <button class="btn ghost" id="backFromTracker" type="button">← Back</button>
+      <button class="btn ghost" id="backFromTracker">← Back</button>
       <div class="small" id="todayLabel"></div>
     </div>
 
@@ -63,26 +67,71 @@
     <div class="container" id="menu" style="display:block;">
       <div class="section-title"><span id="weekTitle"></span></div>
 
-      <div class="week-row small">
+      <div class="week-row small" style="margin-top:6px;">
         <span>Week:</span>
         <select id="weekSelect"></select>
       </div>
 
-      <div id="menuContent"></div>
+      <div id="menuContent" style="margin-top:10px;"></div>
     </div>
 
     <!-- GROCERIES TAB -->
     <div class="container" id="grocery" style="display:none;">
       <div class="section-title">Grocery list (synced with selected week)</div>
-      <div id="groceryContent"></div>
+      <div id="groceryContent" style="margin-top:10px;"></div>
     </div>
 
     <!-- WORKOUT TAB -->
     <div class="container" id="workout" style="display:none;">
-      <div class="section-title">Workout Plan</div>
+      <div class="section-title">Workout</div>
       <div id="workoutContent">
-        <!-- If you already render workout from weeks.js, leave this empty -->
-        <!-- Otherwise you can paste your workout blocks here or in weeks/weekX.js -->
+        <!-- Default workout if week doesn't override -->
+        <p class="small">Structure: 5 min warm-up · 20–25 min strength · 20 min aerobic · 10–15 min stretching.</p>
+
+        <div class="day-block">
+          <div class="day-name">Day 1 · Lower Body + Incline Walk</div>
+          <ul>
+            <li>Leg Press · 12 × 3</li>
+            <li>Dumbbell RDL · 12 × 3</li>
+            <li>Reverse Lunges · 10/side × 2</li>
+            <li>Incline Walk · 15–20 min</li>
+            <li>Stretch · 10–15 min</li>
+          </ul>
+        </div>
+
+        <div class="day-block">
+          <div class="day-name">Day 2 · Upper Body + Bike/Row</div>
+          <ul>
+            <li>Lat Pulldown · 12 × 3</li>
+            <li>Chest Press · 12 × 3</li>
+            <li>Seated Row · 12 × 3</li>
+            <li>Bike/Row · 15–20 min (easy-moderate)</li>
+            <li>Stretch · 10–15 min</li>
+          </ul>
+        </div>
+
+        <div class="day-block">
+          <div class="day-name">Day 3 · Full Body + Incline Walk</div>
+          <ul>
+            <li>Goblet Squat · 12 × 3</li>
+            <li>Dumbbell Shoulder Press · 10 × 3</li>
+            <li>Back Extension · 12 × 2</li>
+            <li>Incline Walk · 15–20 min</li>
+            <li>Stretch · 10–15 min</li>
+          </ul>
+        </div>
+
+        <div class="day-block">
+          <div class="day-name">Day 4 · Aerobic Priority + Core</div>
+          <ul>
+            <li>Treadmill Incline Walk · 25–30 min</li>
+            <li>Dead Bug · 10/side × 2</li>
+            <li>Plank · 30–45s × 2</li>
+            <li>Stretch · 10–15 min</li>
+          </ul>
+        </div>
+
+        <p class="small">Stretching ideas: YouTube “10 min full body stretch MadFit”.</p>
       </div>
     </div>
 
@@ -94,7 +143,7 @@
       <div class="input-row">
         <input type="date" id="dateInput" />
         <input type="number" step="0.1" id="weightInput" placeholder="Weight (kg)" />
-        <button class="btn" id="addBtn" type="button">Save</button>
+        <button class="btn" id="addBtn">Save</button>
       </div>
 
       <canvas id="weightChart" height="200"></canvas>
@@ -108,50 +157,32 @@
     </div>
   </div>
 
-  <!-- =========================
-       CHECKLIST VIEW
-       (Defaults + Homework/Projects + User tasks)
-  ========================== -->
+  <!-- CHECKLIST VIEW -->
   <div class="container" id="checklistView" style="display:none;">
     <div class="topbar">
-      <button class="btn ghost" id="backFromChecklist" type="button">← Back</button>
+      <button class="btn ghost" id="backFromChecklist">← Back</button>
       <div class="small" id="checklistDateLabel"></div>
     </div>
 
-    <div class="section-title">Daily Checklist</div>
-    <div class="small" id="streakText"></div>
+    <div class="section-title">Checklist</div>
+    <p class="small">Daily resets daily · Weekly resets weekly · Biweekly resets every 2 weeks. Custom tasks stay until checked.</p>
 
-    <!-- Homework / Projects -->
     <div class="day-block">
-      <div class="day-name">Homework / Projects</div>
+      <div class="day-name">Today</div>
+      <div class="small" id="streakText"></div>
 
-      <div class="input-row">
-        <input id="hwInput" type="text" placeholder="e.g., MEAM homework / project milestone" />
-        <input id="hwDueInput" type="date" />
-        <button class="btn" id="addHwBtn" type="button">Add</button>
-      </div>
-
-      <div class="small">These show up daily until checked, with a countdown to the due date.</div>
-    </div>
-
-    <!-- Checklist items -->
-    <div class="day-block">
-      <div class="day-name">Tasks</div>
-
-      <div id="checklistList"></div>
+      <div id="checklistList" style="margin-top:8px;"></div>
 
       <div class="input-row" style="margin-top:10px;">
-        <input id="newTaskInput" placeholder="Add a task (stays until checked)..." />
-        <button class="btn" id="addTaskBtn" type="button">Add</button>
+        <input id="newTaskInput" placeholder="Add a task…" />
+        <button class="btn" id="addTaskBtn">Add</button>
       </div>
 
-      <div class="celebrate" id="dailyCelebrate" style="display:none;">
-        🎉 Daily defaults complete — LET’S GO!
-      </div>
+      <div class="celebrate" id="dailyCelebrate" style="display:none;">🎉 Daily tasks complete — LET’S GO!</div>
     </div>
-
-    <!-- Confetti overlay -->
-    <div id="confettiLayer"></div>
   </div>
+
+  <!-- Confetti layer (optional visual) -->
+  <div id="confettiLayer" style="display:none; position:fixed; inset:0; pointer-events:none; z-index:9999;"></div>
 </body>
 </html>
