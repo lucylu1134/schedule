@@ -1,9 +1,7 @@
 /* =========================================================
    Utilities
 ========================================================= */
-function $(id) {
-  return document.getElementById(id);
-}
+function $(id) { return document.getElementById(id); }
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -15,15 +13,16 @@ function dayOfWeekISO(iso) {
 
 function weekNumberISO(iso) {
   const d = new Date(iso + "T00:00:00");
-  d.setHours(0,0,0,0);
+  d.setHours(0, 0, 0, 0);
   d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
   const week1 = new Date(d.getFullYear(), 0, 4);
   return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
+
 function daysUntil(dueISO, fromISO = todayISO()) {
   const a = new Date(fromISO + "T00:00:00");
   const b = new Date(dueISO + "T00:00:00");
-  return Math.round((b - a) / 86400000); // positive = days left
+  return Math.round((b - a) / 86400000);
 }
 
 function dueLabel(dueISO) {
@@ -34,15 +33,21 @@ function dueLabel(dueISO) {
   return { text: `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`, overdue: true };
 }
 
-
 /* =========================================================
-   STORAGE
+   Storage
 ========================================================= */
 function loadUserTasks() {
   return JSON.parse(localStorage.getItem("lucy_user_tasks") || "[]");
 }
 function saveUserTasks(tasks) {
   localStorage.setItem("lucy_user_tasks", JSON.stringify(tasks));
+}
+
+function loadDueTasks() {
+  return JSON.parse(localStorage.getItem("lucy_due_tasks") || "[]");
+}
+function saveDueTasks(tasks) {
+  localStorage.setItem("lucy_due_tasks", JSON.stringify(tasks));
 }
 
 function loadTaskState(iso = todayISO()) {
@@ -58,16 +63,9 @@ function loadDailyCompleteDays() {
 function saveDailyCompleteDays(days) {
   localStorage.setItem("lucy_daily_complete_days", JSON.stringify(days));
 }
-function loadDueTasks() {
-  return JSON.parse(localStorage.getItem("lucy_due_tasks") || "[]");
-}
-
-function saveDueTasks(tasks) {
-  localStorage.setItem("lucy_due_tasks", JSON.stringify(tasks));
-}
 
 /* =========================================================
-   DEFAULT TASKS
+   Default tasks
 ========================================================= */
 function getDefaultTasksForDate(iso) {
   const day = dayOfWeekISO(iso);
@@ -75,30 +73,27 @@ function getDefaultTasksForDate(iso) {
 
   const tasks = [];
 
-  // Daily
-  tasks.push({ id: "weight", text: "Record weight", source: "default" });
-  tasks.push({ id: "shower", text: "Shower", source: "default" });
+  // Daily defaults
+  tasks.push({ id: "gym", text: "Gym / Cardio", source: "default", enabled: [1,2,3,4].includes(day) }); // Mon-Thu only
+  tasks.push({ id: "weight", text: "Record weight", source: "default", enabled: true });
+  tasks.push({ id: "shower", text: "Shower", source: "default", enabled: true });
 
-  // Gym Mon–Thu
-  if ([1,2,3,4].includes(day)) {
-    tasks.unshift({ id: "gym", text: "Gym / Cardio", source: "default" });
-  }
-
-  // Weekly
-  tasks.push({ id: "laundry", text: "Laundry", source: "weekly" });
-  tasks.push({ id: "groceries", text: "Groceries", source: "weekly" });
-  tasks.push({ id: "journal", text: "Journal", source: "weekly" });
+  // Weekly defaults
+  tasks.push({ id: "laundry", text: "Laundry", source: "weekly", enabled: true });
+  tasks.push({ id: "groceries", text: "Groceries", source: "weekly", enabled: true });
+  tasks.push({ id: "journal", text: "Journal", source: "weekly", enabled: true });
 
   // Biweekly (even weeks)
   if (week % 2 === 0) {
-    tasks.push({ id: "bedsheets", text: "Change bedsheets", source: "biweekly" });
+    tasks.push({ id: "bedsheets", text: "Change bedsheets", source: "biweekly", enabled: true });
   }
 
-  return tasks;
+  // Filter out disabled (e.g. gym on Fri-Sun)
+  return tasks.filter(t => t.enabled);
 }
 
 /* =========================================================
-   STREAK + CONFETTI
+   Celebration + streak
 ========================================================= */
 function wasDailyComplete(iso) {
   return loadDailyCompleteDays().includes(iso);
@@ -113,12 +108,11 @@ function markDailyComplete(iso) {
 function computeStreak() {
   let streak = 0;
   let iso = todayISO();
-
   while (wasDailyComplete(iso)) {
     streak++;
     const d = new Date(iso + "T00:00:00");
     d.setDate(d.getDate() - 1);
-    iso = d.toISOString().slice(0,10);
+    iso = d.toISOString().slice(0, 10);
   }
   return streak;
 }
@@ -135,7 +129,7 @@ function popConfetti() {
     el.className = "confetti";
     el.style.left = Math.random() * 100 + "vw";
     el.style.background = `hsl(${Math.random()*360},80%,60%)`;
-    el.style.animationDuration = 700 + Math.random()*600 + "ms";
+    el.style.animationDuration = 700 + Math.random() * 600 + "ms";
     layer.appendChild(el);
   }
 
@@ -146,7 +140,27 @@ function popConfetti() {
 }
 
 /* =========================================================
-   CHECKLIST RENDER
+   Homework / due tasks
+========================================================= */
+function addDueTask(text, dueDateISO) {
+  const tasks = loadDueTasks();
+  tasks.push({ id: "due_" + Date.now(), text, dueDate: dueDateISO });
+  saveDueTasks(tasks);
+  renderChecklist();
+}
+
+/* =========================================================
+   User tasks (manual, no due date)
+========================================================= */
+function addUserTask(text) {
+  const tasks = loadUserTasks();
+  tasks.push({ id: "user_" + Date.now(), text, source: "user" });
+  saveUserTasks(tasks);
+  renderChecklist();
+}
+
+/* =========================================================
+   Checklist render (single list)
 ========================================================= */
 function renderChecklist() {
   const iso = todayISO();
@@ -155,19 +169,22 @@ function renderChecklist() {
 
   listEl.innerHTML = "";
 
-   const defaults = getDefaultTasksForDate(iso);
-   const userTasks = loadUserTasks();
-   
-   // homework/projects with due dates (show daily until checked)
-   const dueTasks = loadDueTasks().map(t => ({
-     id: t.id,
-     text: t.text,
-     source: "due",
-     dueDate: t.dueDate
-   }));
-   
-   const allTasks = [...defaults, ...dueTasks, ...userTasks];
+  const defaults = getDefaultTasksForDate(iso);
 
+  const dueTasks = loadDueTasks().map(t => ({
+    id: t.id,
+    text: t.text,
+    source: "due",
+    dueDate: t.dueDate
+  }));
+
+  const userTasks = loadUserTasks().map(t => ({
+    id: t.id,
+    text: t.text,
+    source: "user"
+  }));
+
+  const allTasks = [...defaults, ...dueTasks, ...userTasks];
   const state = loadTaskState(iso);
 
   let defaultsComplete = true;
@@ -183,14 +200,15 @@ function renderChecklist() {
     const text = document.createElement("span");
     text.textContent = task.text;
     text.className = "task-text";
-   let meta = null;
-   if (task.source === "due" && task.dueDate) {
-     const info = dueLabel(task.dueDate);
-     meta = document.createElement("span");
-     meta.className = "task-meta" + (info.overdue ? " overdue" : "");
-     meta.textContent = `(${info.text})`;
-   }
     if (cb.checked) text.classList.add("checked");
+
+    let meta = null;
+    if (task.source === "due" && task.dueDate) {
+      const info = dueLabel(task.dueDate);
+      meta = document.createElement("span");
+      meta.className = "task-meta" + (info.overdue ? " overdue" : "");
+      meta.textContent = `(${info.text})`;
+    }
 
     cb.addEventListener("change", () => {
       const st = loadTaskState(iso);
@@ -199,16 +217,17 @@ function renderChecklist() {
         st[task.id] = true;
         text.classList.add("checked");
 
-        // Remove user tasks permanently
+        // checked user tasks disappear
         if (task.source === "user") {
           saveUserTasks(loadUserTasks().filter(t => t.id !== task.id));
         }
-      // Remove due tasks permanently
-      if (task.source === "due") {
-        saveDueTasks(loadDueTasks().filter(t => t.id !== task.id));
-      }
 
+        // checked due tasks disappear
+        if (task.source === "due") {
+          saveDueTasks(loadDueTasks().filter(t => t.id !== task.id));
+        }
       } else {
+        // unchecking keeps task (unless you later check it)
         delete st[task.id];
         text.classList.remove("checked");
       }
@@ -219,58 +238,65 @@ function renderChecklist() {
 
     row.appendChild(cb);
     row.appendChild(text);
-     if (meta) row.appendChild(meta);
+    if (meta) row.appendChild(meta);
     listEl.appendChild(row);
 
-    if (task.source === "default" && !cb.checked) {
-      defaultsComplete = false;
-    }
+    // Only default tasks count toward celebration
+    if (task.source === "default" && !cb.checked) defaultsComplete = false;
   });
 
-  // Celebration
   if (defaultsComplete && !wasDailyComplete(iso)) {
     markDailyComplete(iso);
     popConfetti();
+    const celebrate = $("dailyCelebrate");
+    if (celebrate) {
+      celebrate.style.display = "block";
+      setTimeout(() => (celebrate.style.display = "none"), 1500);
+    }
   }
 
-  // Streak UI
   const streak = computeStreak();
   if ($("streakText")) $("streakText").textContent = `${streak} day streak`;
 }
 
-
 /* =========================================================
-   ADD USER TASK
+   Simple view routing (home/tracker/checklist)
 ========================================================= */
-function addUserTask(text) {
-  const tasks = loadUserTasks();
-  tasks.push({
-    id: "user_" + Date.now(),
-    text,
-    source: "user"
+function showView(viewId) {
+  const ids = ["homeView", "trackerView", "checklistView"];
+  ids.forEach(id => {
+    const el = $(id);
+    if (el) el.style.display = (id === viewId ? "block" : "none");
   });
-  saveUserTasks(tasks);
-  renderChecklist();
 }
 
 /* =========================================================
-   INIT
+   Init
 ========================================================= */
-function addDueTask(text, dueDateISO) {
-  const tasks = loadDueTasks();
-  tasks.push({
-    id: "due_" + Date.now(),
-    text,
-    dueDate: dueDateISO
-  });
-  saveDueTasks(tasks);
-  renderChecklist();
-}
 document.addEventListener("DOMContentLoaded", () => {
-  if ($("checklistDateLabel")) {
-    $("checklistDateLabel").textContent = "Today: " + todayISO();
+  // Home navigation
+  if ($("goTracker")) $("goTracker").addEventListener("click", () => showView("trackerView"));
+  if ($("goChecklist")) $("goChecklist").addEventListener("click", () => showView("checklistView"));
+  if ($("backFromTracker")) $("backFromTracker").addEventListener("click", () => showView("homeView"));
+  if ($("backFromChecklist")) $("backFromChecklist").addEventListener("click", () => showView("homeView"));
+
+  // Labels
+  if ($("todayLabel")) $("todayLabel").textContent = "Today: " + todayISO();
+  if ($("checklistDateLabel")) $("checklistDateLabel").textContent = "Today: " + todayISO();
+
+  // Homework/projects inputs
+  if ($("hwDueInput")) $("hwDueInput").value = todayISO();
+  if ($("addHwBtn") && $("hwInput") && $("hwDueInput")) {
+    $("addHwBtn").addEventListener("click", () => {
+      const text = $("hwInput").value.trim();
+      const due = $("hwDueInput").value;
+      if (!text || !due) return;
+      addDueTask(text, due);
+      $("hwInput").value = "";
+    });
   }
 
+  // Manual checklist task input
   if ($("addTaskBtn") && $("newTaskInput")) {
     $("addTaskBtn").addEventListener("click", () => {
       const val = $("newTaskInput").value.trim();
@@ -278,17 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
       addUserTask(val);
       $("newTaskInput").value = "";
     });
-   if ($("hwDueInput")) $("hwDueInput").value = todayISO();
-   
-   if ($("addHwBtn") && $("hwInput") && $("hwDueInput")) {
-     $("addHwBtn").addEventListener("click", () => {
-       const text = $("hwInput").value.trim();
-       const due = $("hwDueInput").value; // YYYY-MM-DD
-       if (!text || !due) return;
-       addDueTask(text, due);
-       $("hwInput").value = "";
-     });
-   }
   }
 
   renderChecklist();
