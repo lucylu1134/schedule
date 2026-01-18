@@ -518,11 +518,9 @@ async function initWeightTracker() {
 
   // Sign in anonymously
   if (!auth.currentUser) {
-    await signInAnonymously(auth);
-  }
-  const uid = auth.currentUser.uid;
-
-  const weightDocRef = doc(db, `users/${uid}/weight/log`);
+     await signInAnonymously(auth);
+   }
+  const weightDocRef = doc(db, "shared", "lucy_weight_log");
 
   // ---- Local state ----
   let data = [];
