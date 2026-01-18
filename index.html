@@ -146,6 +146,27 @@
         <button class="btn" id="addBtn">Save</button>
       </div>
 
+      <div class="day-block" style="margin-top:10px;">
+      <div class="day-name">Sync across devices (Export / Import)</div>
+      <div class="small" style="margin-bottom:8px;">
+        Export on one device → copy → paste into Import on the other device.
+      </div>
+    
+      <div class="input-row" style="flex-wrap:wrap;">
+        <button class="btn" id="exportWeightBtn">Export</button>
+        <button class="btn ghost" id="copyWeightBtn">Copy</button>
+        <button class="btn ghost" id="importWeightBtn">Import</button>
+        <button class="btn ghost" id="clearWeightBtn">Clear</button>
+      </div>
+    
+      <textarea id="weightTransferBox" rows="6"
+        placeholder="Export will appear here. Paste here to import."
+        style="width:100%; padding:10px; border:1px solid #ccc; border-radius:10px; font-size:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"></textarea>
+    
+      <div class="small" id="weightTransferMsg" style="margin-top:6px;"></div>
+    </div>
+
+
       <canvas id="weightChart" height="200"></canvas>
 
       <table id="weightTable">
