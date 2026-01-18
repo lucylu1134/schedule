@@ -500,29 +500,35 @@ function initTracker() {
 /* =========================================================
    Weight tracker
 ========================================================= */
-function initWeightTracker() {
+async function initWeightTracker() {
   const dateInput = $("dateInput");
   const weightInput = $("weightInput");
   const addBtn = $("addBtn");
   const tableBody = document.querySelector("#weightTable tbody");
   const canvas = $("weightChart");
-
-  const exportBtn = $("exportWeightBtn");
-  const copyBtn = $("copyWeightBtn");
-  const importBtn = $("importWeightBtn");
-  const clearBtn = $("clearWeightBtn");
-  const box = $("weightTransferBox");
-  const msg = $("weightTransferMsg");
-
   if (!dateInput || !weightInput || !addBtn || !tableBody || !canvas) return;
 
-  let data = JSON.parse(localStorage.getItem("lucy_weight_data") || "[]");
+  // ---- Firebase handles ----
+  const svc = window.firebaseServices;
+  if (!svc) {
+    console.error("firebaseServices missing. Check index.html module script.");
+    return;
+  }
+  const { auth, db, signInAnonymously, doc, getDoc, setDoc, onSnapshot } = svc;
+
+  // Sign in anonymously
+  if (!auth.currentUser) {
+    await signInAnonymously(auth);
+  }
+  const uid = auth.currentUser.uid;
+
+  const weightDocRef = doc(db, `users/${uid}/weight/log`);
+
+  // ---- Local state ----
+  let data = [];
   let chart = null;
 
-  const setMsg = (t) => { if (msg) msg.textContent = t || ""; };
-
   function normalizeAndSort(arr) {
-    // keep best entry per date, numeric weight
     const map = new Map();
     (arr || []).forEach(e => {
       if (!e || !e.date) return;
@@ -531,11 +537,6 @@ function initWeightTracker() {
       map.set(e.date, { date: e.date, weight: w });
     });
     return [...map.values()].sort((a,b) => new Date(a.date) - new Date(b.date));
-  }
-
-  function save() {
-    data = normalizeAndSort(data);
-    localStorage.setItem("lucy_weight_data", JSON.stringify(data));
   }
 
   function renderTable() {
@@ -563,17 +564,11 @@ function initWeightTracker() {
     const pad = Math.max(0.5, span * 0.25);
 
     if (chart) chart.destroy();
-
     chart = new Chart(canvas.getContext("2d"), {
       type: "line",
       data: {
         labels,
-        datasets: [{
-          label: "Weight (kg)",
-          data: values,
-          tension: 0.25,
-          pointRadius: 3,
-        }]
+        datasets: [{ label: "Weight (kg)", data: values, tension: 0.25, pointRadius: 3 }]
       },
       options: {
         responsive: true,
@@ -590,93 +585,42 @@ function initWeightTracker() {
     });
   }
 
-  function rerenderAll() {
-    save();
-    renderTable();
-    renderChart();
+  async function saveToCloud() {
+    const payload = { version: 1, updatedAt: new Date().toISOString(), data };
+    await setDoc(weightDocRef, payload, { merge: true });
   }
 
-  // Add entry
-  addBtn.addEventListener("click", () => {
+  // Live sync: whenever cloud changes, update UI
+  onSnapshot(weightDocRef, (snap) => {
+    const cloud = snap.exists() ? snap.data() : null;
+    data = normalizeAndSort(cloud?.data || []);
+    renderTable();
+    renderChart();
+  });
+
+  // If doc doesn’t exist yet, create it once
+  const initial = await getDoc(weightDocRef);
+  if (!initial.exists()) {
+    await setDoc(weightDocRef, { version: 1, updatedAt: new Date().toISOString(), data: [] });
+  }
+
+  // Add entry -> write to cloud
+  addBtn.addEventListener("click", async () => {
     const d = dateInput.value;
     const w = parseFloat(weightInput.value);
     if (!d || !Number.isFinite(w)) return;
 
+    // upsert
     const idx = data.findIndex(x => x.date === d);
     if (idx >= 0) data[idx].weight = w;
     else data.push({ date: d, weight: w });
 
-    rerenderAll();
+    data = normalizeAndSort(data);
+    await saveToCloud();
     weightInput.value = "";
-    setMsg("");
   });
 
-  // Default date = today
   dateInput.value = todayISO();
-
-  // ===== Export / Import =====
-  function exportPayload() {
-    return JSON.stringify({
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      data: normalizeAndSort(data),
-    }, null, 2);
-  }
-
-  function tryParseImport(text) {
-    const obj = JSON.parse(text);
-    if (!obj || !Array.isArray(obj.data)) throw new Error("Missing data array.");
-    return normalizeAndSort(obj.data);
-  }
-
-  if (exportBtn && box) {
-    exportBtn.addEventListener("click", () => {
-      box.value = exportPayload();
-      setMsg("Exported. Copy this to your other device.");
-    });
-  }
-
-  if (copyBtn && box) {
-    copyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(box.value || "");
-        setMsg("Copied to clipboard ✅");
-      } catch {
-        setMsg("Couldn’t auto-copy. Select all + copy manually.");
-      }
-    });
-  }
-
-  if (importBtn && box) {
-    importBtn.addEventListener("click", () => {
-      try {
-        const incoming = tryParseImport(box.value.trim());
-        // merge by date (incoming wins if same date)
-        const merged = normalizeAndSort([...(data || []), ...incoming]);
-        data = merged;
-        rerenderAll();
-        setMsg("Imported ✅ (merged by date)");
-      } catch (e) {
-        setMsg("Import failed: " + (e?.message || "Invalid JSON"));
-      }
-    });
-  }
-
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      if (!confirm("Clear ALL weight data on this device?")) return;
-      data = [];
-      localStorage.removeItem("lucy_weight_data");
-      rerenderAll();
-      if (box) box.value = "";
-      setMsg("Cleared.");
-    });
-  }
-
-  // Initial render
-  data = normalizeAndSort(data);
-  renderTable();
-  renderChart();
 }
 
 /* =========================================================
