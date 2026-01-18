@@ -205,7 +205,7 @@ th {
 /* Make the weight chart visible without huge scrolling */
 #weightChart {
   width: 100% !important;
-  height: 280px !important;
+  height: 350px !important;
   display: block;
 }
 
