@@ -13,6 +13,30 @@
   <script src="./weeks/week2.js"></script>
   <script src="./weeks/weeks.js"></script>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2ApvsYcW4hZd-I5UiYtyMunFQJIOem7o",
+      authDomain: "schedule-b5736.firebaseapp.com",
+      projectId: "schedule-b5736",
+      storageBucket: "schedule-b5736.firebasestorage.app",
+      messagingSenderId: "388922781257",
+      appId: "1:388922781257:web:85f583023da82466615998",
+      measurementId: "G-J2M7CERMWS"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    window.firebaseServices = { auth, db, signInAnonymously, doc, getDoc, setDoc, onSnapshot };
+  </script>
+  
+  <script src="./app.js?v=4" defer></script>
+
   <!-- App -->
   <script src="./app.js?v=3" defer></script>
 </head>
