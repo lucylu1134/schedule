@@ -507,74 +507,176 @@ function initWeightTracker() {
   const tableBody = document.querySelector("#weightTable tbody");
   const canvas = $("weightChart");
 
+  const exportBtn = $("exportWeightBtn");
+  const copyBtn = $("copyWeightBtn");
+  const importBtn = $("importWeightBtn");
+  const clearBtn = $("clearWeightBtn");
+  const box = $("weightTransferBox");
+  const msg = $("weightTransferMsg");
+
   if (!dateInput || !weightInput || !addBtn || !tableBody || !canvas) return;
 
   let data = JSON.parse(localStorage.getItem("lucy_weight_data") || "[]");
+  let chart = null;
+
+  const setMsg = (t) => { if (msg) msg.textContent = t || ""; };
+
+  function normalizeAndSort(arr) {
+    // keep best entry per date, numeric weight
+    const map = new Map();
+    (arr || []).forEach(e => {
+      if (!e || !e.date) return;
+      const w = Number(e.weight);
+      if (!Number.isFinite(w)) return;
+      map.set(e.date, { date: e.date, weight: w });
+    });
+    return [...map.values()].sort((a,b) => new Date(a.date) - new Date(b.date));
+  }
 
   function save() {
+    data = normalizeAndSort(data);
     localStorage.setItem("lucy_weight_data", JSON.stringify(data));
   }
 
   function renderTable() {
     tableBody.innerHTML = "";
-    const sorted = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-    sorted.forEach(e => {
+    data.forEach(e => {
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${e.date}</td><td>${Number(e.weight).toFixed(1)}</td>`;
       tableBody.appendChild(tr);
     });
   }
 
-  let chart = null;
-   function renderChart() {
-     const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
-     const labels = sorted.map(e => e.date);
-     const values = sorted.map(e => Number(e.weight));
-   
-     const min = Math.min(...values);
-     const max = Math.max(...values);
-     const pad = Math.max(0.5, (max - min) * 0.2); // at least 0.5kg padding
-   
-     if (chart) chart.destroy();
-     chart = new Chart(canvas.getContext("2d"), {
-       type: "line",
-       data: {
-         labels,
-         datasets: [{ label: "Weight (kg)", data: values, tension: 0.2, pointRadius: 3 }]
-       },
-       options: {
-         responsive: true,
-         maintainAspectRatio: false,
-         scales: {
-           y: {
-             suggestedMin: min - pad,
-             suggestedMax: max + pad
-           }
-         }
-       }
-     });
+  function renderChart() {
+    if (!data.length) {
+      if (chart) chart.destroy();
+      chart = null;
+      return;
+    }
+
+    const labels = data.map(e => e.date);
+    const values = data.map(e => Number(e.weight));
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = Math.max(0.5, max - min);
+    const pad = Math.max(0.5, span * 0.25);
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(canvas.getContext("2d"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Weight (kg)",
+          data: values,
+          tension: 0.25,
+          pointRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: {
+          y: {
+            suggestedMin: min - pad,
+            suggestedMax: max + pad,
+            ticks: { stepSize: 0.5 }
+          }
+        }
+      }
+    });
   }
 
+  function rerenderAll() {
+    save();
+    renderTable();
+    renderChart();
+  }
+
+  // Add entry
   addBtn.addEventListener("click", () => {
     const d = dateInput.value;
     const w = parseFloat(weightInput.value);
-    if (!d || isNaN(w)) return;
+    if (!d || !Number.isFinite(w)) return;
 
     const idx = data.findIndex(x => x.date === d);
     if (idx >= 0) data[idx].weight = w;
     else data.push({ date: d, weight: w });
 
-    save();
-    renderTable();
-    renderChart();
+    rerenderAll();
     weightInput.value = "";
+    setMsg("");
   });
 
+  // Default date = today
   dateInput.value = todayISO();
-  if (data.length) {
-    renderTable();
-    renderChart();
+
+  // ===== Export / Import =====
+  function exportPayload() {
+    return JSON.stringify({
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: normalizeAndSort(data),
+    }, null, 2);
   }
+
+  function tryParseImport(text) {
+    const obj = JSON.parse(text);
+    if (!obj || !Array.isArray(obj.data)) throw new Error("Missing data array.");
+    return normalizeAndSort(obj.data);
+  }
+
+  if (exportBtn && box) {
+    exportBtn.addEventListener("click", () => {
+      box.value = exportPayload();
+      setMsg("Exported. Copy this to your other device.");
+    });
+  }
+
+  if (copyBtn && box) {
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(box.value || "");
+        setMsg("Copied to clipboard ✅");
+      } catch {
+        setMsg("Couldn’t auto-copy. Select all + copy manually.");
+      }
+    });
+  }
+
+  if (importBtn && box) {
+    importBtn.addEventListener("click", () => {
+      try {
+        const incoming = tryParseImport(box.value.trim());
+        // merge by date (incoming wins if same date)
+        const merged = normalizeAndSort([...(data || []), ...incoming]);
+        data = merged;
+        rerenderAll();
+        setMsg("Imported ✅ (merged by date)");
+      } catch (e) {
+        setMsg("Import failed: " + (e?.message || "Invalid JSON"));
+      }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      if (!confirm("Clear ALL weight data on this device?")) return;
+      data = [];
+      localStorage.removeItem("lucy_weight_data");
+      rerenderAll();
+      if (box) box.value = "";
+      setMsg("Cleared.");
+    });
+  }
+
+  // Initial render
+  data = normalizeAndSort(data);
+  renderTable();
+  renderChart();
 }
 
 /* =========================================================
