@@ -373,30 +373,67 @@ function renderMenuFromData(menuArr) {
   }).join("");
 }
 
-function renderGroceryFromData(groceryObj) {
+function loadGroceryState(weekId) {
+  return JSON.parse(localStorage.getItem(`lucy_grocery_state_${weekId}`) || "{}");
+}
+function saveGroceryState(weekId, state) {
+  localStorage.setItem(`lucy_grocery_state_${weekId}`, JSON.stringify(state));
+}
+
+function renderGroceryFromData(weekObj) {
+  const groceryObj = weekObj?.grocery;
   if (!groceryObj || typeof groceryObj !== "object") {
     return "<div class='small'>No grocery data found for this week.</div>";
   }
 
+  const weekId = weekObj.id || "unknown_week";
+  const state = loadGroceryState(weekId);
+
+  function itemRow(item) {
+    const id = item.key || item.label; // stable identifier
+    const checked = !!state[id];
+
+    // Use a label so clicking text toggles checkbox
+    return `
+      <label class="task-row" style="cursor:pointer;">
+        <input type="checkbox" data-gkey="${escapeHTML(id)}" ${checked ? "checked" : ""} />
+        <span class="task-text ${checked ? "checked" : ""}">${escapeHTML(item.label || "")}</span>
+      </label>
+    `;
+  }
+
   function section(title, arr) {
     if (!Array.isArray(arr) || arr.length === 0) return "";
-    const items = arr.map(it => {
-      const label = it.label || "";
-      return `<div class="task-row"><input type="checkbox" disabled /><span class="task-text">${escapeHTML(label)}</span></div>`;
-    }).join("");
     return `
       <div class="day-block">
         <div class="day-name">${escapeHTML(title)}</div>
-        ${items}
+        ${arr.map(itemRow).join("")}
       </div>
     `;
   }
 
-  return [
+  const html = [
     section("Proteins", groceryObj.proteins),
     section("Veggies", groceryObj.veggies),
     section("Other", groceryObj.other),
   ].join("");
+
+  // After rendering, wire listeners once
+  setTimeout(() => {
+    document.querySelectorAll("#groceryContent input[type='checkbox'][data-gkey]").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const k = cb.getAttribute("data-gkey");
+        state[k] = cb.checked;
+        saveGroceryState(weekId, state);
+
+        // toggle strike-through
+        const text = cb.parentElement.querySelector(".task-text");
+        if (text) text.classList.toggle("checked", cb.checked);
+      });
+    });
+  }, 0);
+
+  return html;
 }
 
 function initWeekSelect() {
@@ -441,11 +478,11 @@ function renderWeek(weekId) {
   }
 
   // GROCERIES: support both groceryHTML and grocery{}
-  const gEl = $("groceryContent");
-  if (gEl) {
-    if (week.groceryHTML) gEl.innerHTML = week.groceryHTML;
-    else gEl.innerHTML = renderGroceryFromData(week.grocery);
-  }
+   const gEl = $("groceryContent");
+   if (gEl) {
+     if (week.groceryHTML) gEl.innerHTML = week.groceryHTML;
+     else gEl.innerHTML = renderGroceryFromData(week); // <--- pass week
+   }
 
   // WORKOUT: optional override
   const wEl = $("workoutContent");
@@ -489,20 +526,33 @@ function initWeightTracker() {
   }
 
   let chart = null;
-  function renderChart() {
-    const sorted = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const labels = sorted.map(e => e.date);
-    const values = sorted.map(e => e.weight);
-
-    if (chart) chart.destroy();
-    chart = new Chart(canvas.getContext("2d"), {
-      type: "line",
-      data: {
-        labels,
-        datasets: [{ label: "Weight (kg)", data: values, tension: 0.2, pointRadius: 3 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
+   function renderChart() {
+     const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+     const labels = sorted.map(e => e.date);
+     const values = sorted.map(e => Number(e.weight));
+   
+     const min = Math.min(...values);
+     const max = Math.max(...values);
+     const pad = Math.max(0.5, (max - min) * 0.2); // at least 0.5kg padding
+   
+     if (chart) chart.destroy();
+     chart = new Chart(canvas.getContext("2d"), {
+       type: "line",
+       data: {
+         labels,
+         datasets: [{ label: "Weight (kg)", data: values, tension: 0.2, pointRadius: 3 }]
+       },
+       options: {
+         responsive: true,
+         maintainAspectRatio: false,
+         scales: {
+           y: {
+             suggestedMin: min - pad,
+             suggestedMax: max + pad
+           }
+         }
+       }
+     });
   }
 
   addBtn.addEventListener("click", () => {
