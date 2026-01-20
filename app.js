@@ -34,21 +34,143 @@ function dueLabel(dueISO) {
   return { text: `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`, overdue: true };
 }
 
+// =========================================================
+// CHECKLIST CLOUD SYNC (Firestore)
+// =========================================================
+
+let checklistCloud = {
+  loaded: false,
+  userTasks: [],
+  dueTasks: [],
+  dailyCompleteDays: [],
+  state: { daily: {}, weekly: {}, biweekly: {} },
+};
+
+function getChecklistDocRef() {
+  const svc = window.firebaseServices;
+  if (!svc) return null;
+  const { db, doc } = svc;
+  return doc(db, "shared", "lucy_checklist");
+}
+
+async function initChecklistCloud() {
+  const svc = window.firebaseServices;
+  if (!svc) {
+    console.error("firebaseServices missing (check index.html).");
+    return;
+  }
+
+  const { auth, signInAnonymously, getDoc, setDoc, onSnapshot } = svc;
+
+  if (!auth.currentUser) {
+    await signInAnonymously(auth);
+  }
+
+  const ref = getChecklistDocRef();
+  if (!ref) return;
+
+  // create doc once if missing
+  const initial = await getDoc(ref);
+  if (!initial.exists()) {
+    await setDoc(ref, {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      userTasks: [],
+      dueTasks: [],
+      dailyCompleteDays: [],
+      state: { daily: {}, weekly: {}, biweekly: {} },
+    });
+  }
+
+  // live sync
+  onSnapshot(ref, (snap) => {
+    const d = snap.data() || {};
+    checklistCloud = {
+      loaded: true,
+      userTasks: Array.isArray(d.userTasks) ? d.userTasks : [],
+      dueTasks: Array.isArray(d.dueTasks) ? d.dueTasks : [],
+      dailyCompleteDays: Array.isArray(d.dailyCompleteDays) ? d.dailyCompleteDays : [],
+      state: d.state && typeof d.state === "object"
+        ? {
+            daily: d.state.daily || {},
+            weekly: d.state.weekly || {},
+            biweekly: d.state.biweekly || {},
+          }
+        : { daily: {}, weekly: {}, biweekly: {} },
+    };
+
+    // re-render whenever cloud changes
+    renderChecklist();
+  });
+}
+
+async function saveChecklistCloud() {
+  const svc = window.firebaseServices;
+  if (!svc) return;
+  const { setDoc } = svc;
+  const ref = getChecklistDocRef();
+  if (!ref) return;
+
+  await setDoc(ref, {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    userTasks: checklistCloud.userTasks,
+    dueTasks: checklistCloud.dueTasks,
+    dailyCompleteDays: checklistCloud.dailyCompleteDays,
+    state: checklistCloud.state,
+  }, { merge: true });
+}
+
+
 /* =========================================================
    STORAGE (tasks lists)
 ========================================================= */
 function loadUserTasks() {
-  return JSON.parse(localStorage.getItem("lucy_user_tasks") || "[]");
+  return checklistCloud.userTasks || [];
 }
 function saveUserTasks(tasks) {
-  localStorage.setItem("lucy_user_tasks", JSON.stringify(tasks));
+  checklistCloud.userTasks = tasks;
+  saveChecklistCloud();
 }
 
 function loadDueTasks() {
-  return JSON.parse(localStorage.getItem("lucy_due_tasks") || "[]");
+  return checklistCloud.dueTasks || [];
 }
 function saveDueTasks(tasks) {
-  localStorage.setItem("lucy_due_tasks", JSON.stringify(tasks));
+  checklistCloud.dueTasks = tasks;
+  saveChecklistCloud();
+}
+
+function loadDailyCompleteDays() {
+  return checklistCloud.dailyCompleteDays || [];
+}
+function saveDailyCompleteDays(days) {
+  checklistCloud.dailyCompleteDays = days;
+  saveChecklistCloud();
+}
+
+function loadScopedState(scope, iso = todayISO()) {
+  if (!checklistCloud.state) checklistCloud.state = { daily: {}, weekly: {}, biweekly: {} };
+  const bucket = checklistCloud.state[scope] || {};
+  const key =
+    scope === "weekly" ? isoWeekKey(iso) :
+    scope === "biweekly" ? isoBiWeekKey(iso) :
+    iso;
+
+  return bucket[key] || {};
+}
+
+function saveScopedState(scope, stateObj, iso = todayISO()) {
+  if (!checklistCloud.state) checklistCloud.state = { daily: {}, weekly: {}, biweekly: {} };
+  if (!checklistCloud.state[scope]) checklistCloud.state[scope] = {};
+
+  const key =
+    scope === "weekly" ? isoWeekKey(iso) :
+    scope === "biweekly" ? isoBiWeekKey(iso) :
+    iso;
+
+  checklistCloud.state[scope][key] = stateObj;
+  saveChecklistCloud();
 }
 
 /* =========================================================
@@ -69,29 +191,9 @@ function isoBiWeekKey(iso = todayISO()) {
   return `${year}-B${String(block).padStart(2, "0")}`;
 }
 
-function scopeKey(scope, iso = todayISO()) {
-  if (scope === "weekly") return "lucy_task_state_week_" + isoWeekKey(iso);
-  if (scope === "biweekly") return "lucy_task_state_biweek_" + isoBiWeekKey(iso);
-  return "lucy_task_state_day_" + iso;
-}
-
-function loadScopedState(scope, iso = todayISO()) {
-  return JSON.parse(localStorage.getItem(scopeKey(scope, iso)) || "{}");
-}
-
-function saveScopedState(scope, state, iso = todayISO()) {
-  localStorage.setItem(scopeKey(scope, iso), JSON.stringify(state));
-}
-
 /* =========================================================
    Streak (daily completion)
 ========================================================= */
-function loadDailyCompleteDays() {
-  return JSON.parse(localStorage.getItem("lucy_daily_complete_days") || "[]");
-}
-function saveDailyCompleteDays(days) {
-  localStorage.setItem("lucy_daily_complete_days", JSON.stringify(days));
-}
 function wasDailyComplete(iso) {
   return loadDailyCompleteDays().includes(iso);
 }
@@ -667,6 +769,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  renderChecklist();
+   initChecklistCloud();
   initTracker();
 });
