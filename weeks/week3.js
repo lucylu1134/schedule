@@ -2,10 +2,10 @@
 (function () {
   const week = {
     id: "week3",
-    startDate: "2026-01-27",
-    endDate: "2026-02-02",
-    label: "Week 3 (Jan 27–Feb 2)",
-    title: "Week 3 Menu (更紧一点的减脂版 · 含主食 + 清库存三餐)",
+    startDate: "2026-01-26",
+    endDate: "2026-02-01",
+    label: "Week 3 (Jan 26–Feb 1)",
+    title: "Week 3 Menu",
 
     menu: [
       {
@@ -218,5 +218,5 @@
   };
 
   window.WEEK_REGISTRY = window.WEEK_REGISTRY || {};
-  window.WEEK_REGISTRY[week.id] = week;
+  window.WEEK_REGISTRY[week3.id] = week3;
 })();
