@@ -265,15 +265,20 @@ function getDefaultTasksForDate(iso) {
   }
   tasks.push({ id: "weight", text: "Record weight", source: "default", scope: "daily" });
   tasks.push({ id: "shower", text: "Shower", source: "default", scope: "daily" });
+  tasks.push({ id: "read", text: "Read", source: "default", scope: "daily" });
+  tasks.push({ id: "class", text: "Went to All Classes", source: "default", scope: "daily" });
 
   // Weekly defaults
   tasks.push({ id: "laundry", text: "Laundry", source: "weekly", scope: "weekly" });
   tasks.push({ id: "groceries", text: "Groceries", source: "weekly", scope: "weekly" });
   tasks.push({ id: "journal", text: "Journal", source: "weekly", scope: "weekly" });
+  tasks.push({ id: "deepBrush", text: "Deep Brush", source: "weekly", scope: "weekly" });
+  tasks.push({ id: "mask", text: "Face Mask", source: "weekly", scope: "weekly" });
 
   // Biweekly (even weeks)
   if (week % 2 === 0) {
     tasks.push({ id: "bedsheets", text: "Change bedsheets", source: "biweekly", scope: "biweekly" });
+    tasks.push({ id: "fish", text: "Check on Fish Tank", source: "biweekly", scope: "biweekly" });
   }
 
   return tasks;
