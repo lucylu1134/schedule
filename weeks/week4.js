@@ -95,7 +95,17 @@
         ]
       },
       {
-        name: "Saturday",
+        name: "Saturady",
+        badge: "Social Day · One Meal",
+        meals: [
+          {
+            title: "Shared Meal",
+            text: "外食一餐，控制油量，主食约半碗米饭（≈100g 熟饭）"
+          }
+        ]
+      },
+      {
+        name: "Sunday",
         badge: "Rest Day · Two Meals",
         meals: [
           {
@@ -104,17 +114,7 @@
           },
           {
             title: "Meal 2",
-            text: "西兰花蛋花汤 + 清炒豆苗 + 米饭 80g"
-          }
-        ]
-      },
-      {
-        name: "Sunday",
-        badge: "Social Day · One Meal",
-        meals: [
-          {
-            title: "Shared Meal",
-            text: "外食一餐，控制油量，主食约半碗米饭（≈100g 熟饭）"
+            text: "紫菜蛋花汤 + 清炒豆苗 + 米饭 80g"
           }
         ]
       }
@@ -159,7 +159,7 @@
         },
         {
           key: "broccoli",
-          label: "西兰花 400g｜Tue Dinner 200g；Sat Meal2 200g"
+          label: "西兰花 200g｜Tue Dinner 200g"
         },
         {
           key: "spinach",
@@ -179,7 +179,7 @@
         },
         {
           key: "seaweed",
-          label: "紫菜 1 小包｜Tue Dinner"
+          label: "紫菜 1 小包｜Tue Dinner, Sun Meal 2"
         }
       ],
 
