@@ -5,7 +5,7 @@
     startDate: "2026-02-10",
     endDate: "2026-02-16",
     label: "Week 5 (Feb 10–16)",
-    title: "Week 5 Menu（延续 Week 4 热量 · 每餐含米饭 · 周六休息）",
+    title: "Week 5 Menu",
 
     menu: [
       {
