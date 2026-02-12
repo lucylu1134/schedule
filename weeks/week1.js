@@ -5,7 +5,7 @@
     startDate: "2026-01-13",
     endDate: "2026-01-19",
     label: "Week 1 (Jan 13–19)",
-    title: "Week 1 Menu (four fixed veggies)",
+    title: "Week 1 Menu",
 
     menu: [
       {
