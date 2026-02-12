@@ -5,7 +5,7 @@
     startDate: "2026-01-20",
     endDate: "2026-01-26",
     label: "Week 2 (Jan 20–26)",
-    title: "Week 2 Menu (家常菜减脂版 · 含主食)",
+    title: "Week 2 Menu",
 
     menu: [
       {
