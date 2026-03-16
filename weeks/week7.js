@@ -5,7 +5,7 @@
     startDate: "2026-03-16",
     endDate: "2026-03-22",
     label: "Week (Mar 16–22)",
-    title: "Week Menu（清淡中餐版 · 含拌面）",
+    title: "Week 7 Menu",
 
     menu: [
       {
