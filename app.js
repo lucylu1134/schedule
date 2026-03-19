@@ -34,6 +34,96 @@ function dueLabel(dueISO) {
   return { text: `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`, overdue: true };
 }
 
+/* =========================================================
+   SIMPLE PASSWORD GATE
+========================================================= */
+const SITE_PASSWORD = "1134";
+const SESSION_KEY = "lucy_site_unlocked";
+
+function showPasswordGate() {
+  // already unlocked this session
+  if (sessionStorage.getItem(SESSION_KEY) === "true") return;
+
+  const gate = document.createElement("div");
+  gate.id = "passwordGate";
+  gate.style.position = "fixed";
+  gate.style.inset = "0";
+  gate.style.background = "rgba(255,255,255,0.98)";
+  gate.style.display = "flex";
+  gate.style.alignItems = "center";
+  gate.style.justifyContent = "center";
+  gate.style.zIndex = "99999";
+
+  gate.innerHTML = `
+    <div style="
+      width: 90%;
+      max-width: 360px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      text-align: center;
+      font-family: sans-serif;
+    ">
+      <h2 style="margin-top:0;">Enter Password</h2>
+      <p style="color:#666; margin-bottom:16px;">This site is private.</p>
+      <input
+        id="sitePasswordInput"
+        type="password"
+        placeholder="Password"
+        style="
+          width: 100%;
+          padding: 12px;
+          font-size: 16px;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          box-sizing: border-box;
+        "
+      />
+      <button
+        id="sitePasswordBtn"
+        style="
+          width: 100%;
+          margin-top: 12px;
+          padding: 12px;
+          font-size: 16px;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+        "
+      >
+        Unlock
+      </button>
+      <div id="sitePasswordError" style="color:red; margin-top:10px; min-height:20px;"></div>
+    </div>
+  `;
+
+  document.body.appendChild(gate);
+
+  const input = document.getElementById("sitePasswordInput");
+  const btn = document.getElementById("sitePasswordBtn");
+  const error = document.getElementById("sitePasswordError");
+
+  function tryUnlock() {
+    if (input.value === SITE_PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, "true");
+      gate.remove();
+    } else {
+      error.textContent = "Wrong password";
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  btn.addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryUnlock();
+  });
+
+  input.focus();
+}
+
 // =========================================================
 // CHECKLIST CLOUD SYNC (Firestore)
 // =========================================================
@@ -741,7 +831,24 @@ function showView(viewId) {
 /* =========================================================
    INIT
 ========================================================= */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  showPasswordGate();
+
+  // wait until unlocked before running app
+  if (sessionStorage.getItem(SESSION_KEY) !== "true") {
+    const check = setInterval(() => {
+      if (sessionStorage.getItem(SESSION_KEY) === "true") {
+        clearInterval(check);
+        startApp();
+      }
+    }, 100);
+  } else {
+    startApp();
+  }
+});
+
+
+function startApp() {
   // Nav
   if ($("goTracker")) $("goTracker").addEventListener("click", () => showView("trackerView"));
   if ($("goChecklist")) $("goChecklist").addEventListener("click", () => showView("checklistView"));
@@ -774,6 +881,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-   initChecklistCloud();
+  initChecklistCloud();
   initTracker();
-});
+}
