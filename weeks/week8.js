@@ -1,10 +1,10 @@
 // weeks/week_mar16.js
 (function () {
   const week = {
-    id: "week_mar16",
-    startDate: "2026-03-16",
-    endDate: "2026-03-22",
-    label: "Week (Mar 16–22)",
+    id: "week_mar23",
+    startDate: "2026-03-23",
+    endDate: "2026-03-29",
+    label: "Week (Mar 23–29)",
     title: "Week 8 Menu",
 
     menu: [
