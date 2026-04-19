@@ -5,7 +5,7 @@
     startDate: "2026-04-20",
     endDate: "2026-04-26",
     label: "Week (Apr 20–26)",
-    title: "Week Menu（减脂但好吃版）",
+    title: "Week 10 Menu",
 
     menu: [
       {
